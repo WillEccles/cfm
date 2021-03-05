@@ -1,22 +1,38 @@
+SDIR = src
+BDIR = build
+
 TARGET = cfm
-SRC = cfm.c
+SRC = $(wildcard $(SDIR)/*.cpp)
+OBJ = $(patsubst $(SDIR)/%.cpp,$(BDIR)/%.o,$(SRC))
+DEP = $(addsuffix .d,$(OBJ))
 CONF = config.h
 DEFCONF = config.def.h
 MANPAGE = cfm.1
 PREFIX ?= /usr/local
 
-CFLAGS += -O3 -s -std=c11 -Wall -W -pedantic
+CXXFLAGS += -O3 -std=c++17 -Wall -W -pedantic
 CPPFLAGS += -D_XOPEN_SOURCE=700
+LDFLAGS += -s -flto -fwhole-program
 
 .PHONY: all install uninstall clean
 
 all: $(TARGET)
 
-$(TARGET): $(CONF) $(SRC)
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $(SRC) -o $@
+$(TARGET): $(OBJ)
+	@echo "linking $@"
+	@$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJ) -o $@
+
+-include $(DEP)
+
+$(BDIR)/%.o: $(SDIR)/%.cpp | $(BDIR)
+	@echo "$@"
+	@$(CXX) $(CXXFLAGS) $(CPPFLAGS) -MMD -MP -o $@ -c $<
 
 $(CONF):
 	@cp -v $(DEFCONF) $(CONF)
+
+$(BDIR):
+	mkdir -p $(BDIR)
 
 install: $(TARGET)
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
@@ -29,4 +45,5 @@ uninstall:
 	$(RM) $(DESTDIR)$(PREFIX)/share/man/man1/$(MANPAGE)
 
 clean:
+	$(RM) -r $(BDIR)
 	$(RM) $(TARGET)
