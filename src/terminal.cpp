@@ -6,33 +6,30 @@
 #include <sys/types.h>
 #include <sys/ioctl.h>
 
-namespace cfm {
+namespace cfm::terminal {
 
-terminal::terminal() {
-  interactive_ = (isatty(STDIN_FILENO) && isatty(STDOUT_FILENO));
-  is_setup_ = false;
-  setup();
-}
+namespace {
+bool interactive_ = false;
+struct termios old_term_;
+int rows_;
+int cols_;
+};
 
-terminal::~terminal() {
-  if (interactive_ && is_setup_) {
-    reset();
-  }
-}
+bool setup() noexcept {
+  interactive_ = isatty(STDIN_FILENO) && isatty(STDOUT_FILENO);
 
-void terminal::setup() {
-  if (interactive_ && !is_setup_) {
-    is_setup_ = true;
+  if (interactive_) {
+    if (!update_size()) {
+      return false;
+    }
 
-    updatesize();
-    backup();
-
+    if (!backup()) {
+      return false;
+    }
 
     if (setvbuf(stdout, NULL, _IOFBF, 0) != 0) {
       std::perror("terminal::setup: setvbuf");
-      // TODO exception
-      reset();
-      return;
+      return false;
     }
 
     struct termios new_term = old_term_;
@@ -45,9 +42,7 @@ void terminal::setup() {
 
     if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &new_term) < 0) {
       std::perror("terminal::setup: tcsetattr");
-      // TODO exception
-      reset();
-      return;
+      return false;
     }
 
     std::printf(
@@ -58,10 +53,12 @@ void terminal::setup() {
         "\033[2;%dr", // limit scroll region
         rows_ - 1);
   }
+
+  return true;
 }
 
-void terminal::reset() {
-  if (interactive_ && is_setup_) {
+void reset() noexcept {
+  if (interactive_) {
     std::setvbuf(stdout, NULL, _IOLBF, 0);
 
     if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &old_term_) < 0) {
@@ -69,9 +66,9 @@ void terminal::reset() {
     }
 
     std::printf(
-        "\033[?7h"  // enable line wrapping
-        "\033[?25h" // unhide cursor
-        "\033[r"    // reset scroll region
+        "\033[?7h"    // enable line wrapping
+        "\033[?25h"   // unhide cursor
+        "\033[r"      // reset scroll region
         "\033[?1049l" // restore main screen
         );
 
@@ -79,31 +76,43 @@ void terminal::reset() {
   }
 }
 
-void terminal::updatesize() {
+bool update_size() noexcept {
   if (interactive_) {
     struct winsize ws;
 
     if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) < 0) {
-      perror("terminal::updatesize: ioctl");
-      // TODO exception
-      reset();
+      std::perror("terminal::updatesize: ioctl");
+      return false;
     }
 
     rows_ = ws.ws_row;
     cols_ = ws.ws_col;
   }
+
+  return true;
 }
 
-bool terminal::interactive() const noexcept {
+bool interactive() noexcept {
   return interactive_;
 }
 
-void terminal::backup() {
+bool backup() noexcept {
   if (interactive_) {
     if (tcgetattr(STDIN_FILENO, &old_term_) < 0) {
-      // TODO errno thing
+      std::perror("terminal::backup: tcgetattr");
+      return false;
     }
   }
+
+  return true;
+}
+
+int rows() noexcept {
+  return rows_;
+}
+
+int cols() noexcept {
+  return cols_;
 }
 
 }; // namespace cfm

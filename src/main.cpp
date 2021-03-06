@@ -11,32 +11,40 @@
 #include <cstdio>
 #include <vector>
 #include <filesystem>
+#include <iostream>
 
 #include "files.h"
+#include "terminal.h"
 
 namespace fs = std::filesystem;
 
-bool interactive = true;
+using namespace cfm;
+
+namespace {
 
 // Signal handler for SIGTERM, SIGINT
-void ExitSignal([[maybe_unused]] int _sig) {
+void sig_exit([[maybe_unused]] int _sig) {
   exit(EXIT_SUCCESS);
 }
 
-int main(int argc, char** argv) {
-  if (!isatty(STDIN_FILENO) || !isatty(STDOUT_FILENO)) {
-    interactive = false;
+void sig_resize([[maybe_unused]] int _sig) {
+  if (!terminal::update_size()) {
+    exit(EXIT_FAILURE);
   }
+}
 
-  signal(SIGTERM, ExitSignal);
-  signal(SIGINT, ExitSignal);
+};
 
-  // TODO handle resize
-  signal(SIGWINCH, [](int){ printf("SIGWINCH\n"); });
+int main(int argc, char** argv) {
+  signal(SIGTERM, sig_exit);
+  signal(SIGINT, sig_exit);
+  signal(SIGWINCH, sig_resize);
 
   // TODO handle SIGTSTP and SIGCONT
   signal(SIGTSTP, [](int){ printf("SIGTSTP\n"); });
   signal(SIGCONT, [](int){ printf("SIGCONT\n"); });
+
+  std::ios::sync_with_stdio(true);
 
   if (argc > 1) {
     std::vector<fs::path> flist;

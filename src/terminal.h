@@ -1,31 +1,18 @@
 #ifndef _CFM_SRC_TERMINAL_H__
 #define _CFM_SRC_TERMINAL_H__
 
-#include <termios.h>
+namespace cfm::terminal {
 
-namespace cfm {
+bool backup() noexcept;
+bool setup() noexcept;
+void reset() noexcept;
 
-class terminal {
-public:
-  terminal();
-  ~terminal();
+bool update_size() noexcept;
 
-  void setup();
-  void reset();
+bool is_interactive() noexcept;
 
-  void updatesize();
-
-  bool interactive() const noexcept;
-
-private:
-  bool is_setup_;
-  bool interactive_;
-  struct termios old_term_;
-  int rows_;
-  int cols_;
-
-  void backup();
-};
+int rows() noexcept;
+int cols() noexcept;
 
 }; // namespace cfm::terminal
 
