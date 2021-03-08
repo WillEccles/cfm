@@ -6,10 +6,10 @@
 namespace cfm::keys {
 
 enum key_mods {
-  none,
-  shift,
-  ctrl,
-  alt,
+  Mod_None,
+  Mod_Shift,
+  Mod_Ctrl,
+  Mod_Alt,
 };
 
 // special key values

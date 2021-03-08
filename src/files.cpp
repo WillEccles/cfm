@@ -9,14 +9,18 @@ namespace fs = std::filesystem;
 
 namespace cfm::files {
 
-void list_files(const fs::path& dir, std::vector<fs::path>& flist) {
+listent::listent(const fs::directory_entry& _dirent):
+    dirent(_dirent)
+{}
+
+void list_files(const fs::path& dir, std::vector<listent>& flist) {
   flist.clear();
   for (auto& f : fs::directory_iterator(dir)) {
-    flist.push_back(f.path());
+    flist.push_back(listent(f));
   }
 
   for (auto& p : flist) {
-    std::cout << p.filename().string() << '\n';
+    std::cout << p.dirent.path().filename().string() << '\n';
   }
 }
 

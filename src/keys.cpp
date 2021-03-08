@@ -33,22 +33,25 @@ key get() noexcept {
   std::streamsize n;
 
   if (term::is_interactive()) {
-    n = read_from_cin(buf, 1);
+    n = read_from_cin(c, 1);
     if (n <= 0) {
-      return -1;
+      return {Key_Invalid};
     } else {
-      return *c;
+      return {*c, Mod_None};
     }
   }
 
-  n = read_from_cin(buf, 6);
+  n = read_from_cin(c, 6);
   if (n <= 0) {
-    return -1;
+    return {Key_Invalid};
   }
 
   if (n == 2 && c[0] == '\033' && std::isalpha(c[1])) {
-    return K_ALT(c[1]);
+    return {c[1], Mod_Alt};
   }
+
+  // TODO add rest of input handling
+  return {*c, Mod_None};
 }
 
 bool key::operator== (const key& other) {

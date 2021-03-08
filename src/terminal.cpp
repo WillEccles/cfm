@@ -92,7 +92,7 @@ bool update_size() noexcept {
   return true;
 }
 
-bool interactive() noexcept {
+bool is_interactive() noexcept {
   return interactive_;
 }
 

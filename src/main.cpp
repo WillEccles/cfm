@@ -47,8 +47,8 @@ int main(int argc, char** argv) {
   std::ios::sync_with_stdio(true);
 
   if (argc > 1) {
-    std::vector<fs::path> flist;
-    cfm::files::list_files(argv[1], flist);
+    std::vector<files::listent> flist;
+    files::list_files(argv[1], flist);
   }
 
   return 0;
