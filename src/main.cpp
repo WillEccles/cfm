@@ -14,6 +14,7 @@
 #include <iostream>
 
 #include "files.h"
+#include "keys.h"
 #include "terminal.h"
 
 namespace fs = std::filesystem;
@@ -46,10 +47,30 @@ int main(int argc, char** argv) {
 
   std::ios::sync_with_stdio(true);
 
+  keys::Key inkey;
+
+  if (terminal::setup()) {
+    std::atexit(terminal::reset);
+  } else {
+    terminal::reset();
+    std::cerr << "terminal setup failed\n";
+    exit(1);
+  }
+
+  while ((inkey = keys::get())) {
+    printf("Key: {%x, %x}\r\n", inkey.base, inkey.mod);
+    fflush(stdout);
+    if (inkey == 'q' /*|| inkey == keys::Key_Escape*/) {
+      std::exit(0);
+    }
+  }
+
+#if 0
   if (argc > 1) {
     std::vector<files::listent> flist;
     files::list_files(argv[1], flist);
   }
+#endif
 
   return 0;
 }

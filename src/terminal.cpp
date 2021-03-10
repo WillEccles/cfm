@@ -40,7 +40,7 @@ bool setup() noexcept {
     new_term.c_cc[VMIN] = 0;
     new_term.c_cc[VTIME] = 1;
 
-    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &new_term) < 0) {
+    if (tcsetattr(STDIN_FILENO, TCSANOW, &new_term) < 0) {
       std::perror("terminal::setup: tcsetattr");
       return false;
     }
@@ -52,6 +52,8 @@ bool setup() noexcept {
         "\033[2J"     // clear screen
         "\033[2;%dr", // limit scroll region
         rows_ - 1);
+
+    std::fflush(stdout);
   }
 
   return true;
