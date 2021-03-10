@@ -23,7 +23,7 @@ Key get() noexcept {
 
   std::streamsize n;
 
-  if (term::is_interactive()) {
+  if (!term::is_interactive()) {
     n = read(STDIN_FILENO, c, 1);
     if (n <= 0) {
       return {Key_Invalid, Mod_None};
@@ -42,7 +42,6 @@ Key get() noexcept {
   }
 
   if (n < 3) {
-    std::printf("n < 3: c[0] = %d\r\n", c[0]);
     return {c[0], Mod_None};
   }
 

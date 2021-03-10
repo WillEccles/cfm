@@ -45,8 +45,6 @@ int main(int argc, char** argv) {
   signal(SIGTSTP, [](int){ printf("SIGTSTP\n"); });
   signal(SIGCONT, [](int){ printf("SIGCONT\n"); });
 
-  std::ios::sync_with_stdio(true);
-
   keys::Key inkey;
 
   if (terminal::setup()) {
@@ -60,7 +58,7 @@ int main(int argc, char** argv) {
   while ((inkey = keys::get())) {
     printf("Key: {%x, %x}\r\n", inkey.base, inkey.mod);
     fflush(stdout);
-    if (inkey == 'q' /*|| inkey == keys::Key_Escape*/) {
+    if (inkey == 'q' || inkey == keys::Key_Escape) {
       std::exit(0);
     }
   }

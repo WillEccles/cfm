@@ -6,6 +6,8 @@
 #include <sys/types.h>
 #include <sys/ioctl.h>
 
+#include "util.h"
+
 namespace cfm::terminal {
 
 namespace {
